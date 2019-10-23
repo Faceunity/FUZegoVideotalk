@@ -95,7 +95,7 @@
 // demobar 初始化
 -(FUAPIDemoBar *)demoBar{
     if (!_demoBar) {
-        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height - 220,[UIScreen mainScreen].bounds.size.width, 164)];
+        _demoBar = [[FUAPIDemoBar alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height - 250,[UIScreen mainScreen].bounds.size.width, 164)];
         
         _demoBar.itemsDataSource = [FUManager shareManager].itemsDataSource;
         _demoBar.selectedItem = [FUManager shareManager].selectedItem ;
