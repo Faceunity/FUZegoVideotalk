@@ -11,10 +11,7 @@
 #import "ZegoManager.h"
 #import "ZegoSetting.h"
 
-
-@interface ZegoTalkViewController () <ZegoRoomDelegate, ZegoLivePublisherDelegate, ZegoLivePlayerDelegate, ZegoTalkToolViewControllerDelegate>{
-
-}
+@interface ZegoTalkViewController () <ZegoRoomDelegate, ZegoLivePublisherDelegate, ZegoLivePlayerDelegate, ZegoTalkToolViewControllerDelegate>
 
 @property (weak, nonatomic) IBOutlet UIView *toolView;
 @property (weak, nonatomic) IBOutlet UIView *playViewContainer;
@@ -52,6 +49,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    //开启监听设备旋转
+    if (![UIDevice currentDevice].generatesDeviceOrientationNotifications) {
+        [[UIDevice currentDevice] beginGeneratingDeviceOrientationNotifications];
+    }
+    
+    //注意监听的是UIApplicationDidChangeStatusBarOrientationNotification而不是Device
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(handleOrientationChange:)
+                                                name:UIApplicationDidChangeStatusBarOrientationNotification object:nil];
     
     ZegoTalkToolViewController *toolController = [[ZegoTalkToolViewController alloc] initWithNibName:@"ZegoTalkToolViewController" bundle:nil];
     [self displayToolViewController:toolController];
@@ -108,7 +114,7 @@
         NSString *logString = [NSString stringWithFormat:NSLocalizedString(@"开始登录房间", nil)];
         [self addLogString:logString];
         
-        [[ZegoManager api] loginRoom:self.roomID role:ZEGO_AUDIENCE withCompletionBlock:^(int errorCode, NSArray<ZegoStream *> *streamList) {
+        bool logining = [[ZegoManager api] loginRoom:self.roomID role:ZEGO_AUDIENCE withCompletionBlock:^(int errorCode, NSArray<ZegoStream *> *streamList) {
             NSLog(@"%s, error: %d", __func__, errorCode);
             if (errorCode == 0) {
                 NSString *logString = [NSString stringWithFormat:NSLocalizedString(@"登录房间成功. roomID: %@", nil), self.roomID];
@@ -119,9 +125,6 @@
                 if (streamList.count) {
                     [self onStreamUpdateForAdd:streamList]; // 登录成功即拉流
                 }
-                
-                [self doPublish];   // 登录成功即推流
- 
             } else {
                 NSString *logString = [NSString stringWithFormat:NSLocalizedString(@"登录房间失败. error: %d", nil), errorCode];
                 [self addLogString:logString];
@@ -129,6 +132,13 @@
                 self.isLoginSucceed = NO;
             }
         }];
+        
+        if (logining) {
+            // 调用 loginRoom 接口后立即推流，加快推流速度
+            [self doPublish];
+        } else {
+            [self addLogString:[NSString stringWithFormat:@"登录房间 %@ 失败", self.roomID]];
+        }
     }
 }
 
@@ -199,7 +209,9 @@
     self.viewContainersDict[streamID] = bigView;
     bool ret = [[ZegoManager api] startPlayingStream:streamID inView:bigView];
     [[ZegoManager api] setViewMode:ZegoVideoViewModeScaleAspectFill ofStream:streamID];
-    [[ZegoManager api] activateVedioPlayStream:streamID active:YES videoLayer:VideoStreamLayer_Auto];
+    [[ZegoManager api] activateVideoPlayStream:streamID active:YES videoLayer:VideoStreamLayer_Auto];
+
+
     assert(ret);
 }
 
@@ -283,7 +295,7 @@
         [self addLogString:logString];
         
         [self setAnchorConfig:publishView];
-        
+    
         logString = [NSString stringWithFormat:NSLocalizedString(@"setVideoCodecId: %ld, channel: MAIN", nil), [ZegoSetting sharedInstance].videoCodecType];
         [self addLogString:logString];
         
@@ -453,17 +465,6 @@
         //记录当前的发布信息
         self.isPublishing = YES;
         self.publishStreamID = streamID;
-        
-        NSString *sharedHls = [info[kZegoHlsUrlListKey] firstObject];
-        NSString *sharedRtmp = [info[kZegoRtmpUrlListKey] firstObject];
-        
-        if (sharedHls.length > 0 && sharedRtmp.length > 0)
-        {
-            NSDictionary *dict = @{kFirstAnchor: @(NO), kHlsKey: sharedHls, kRtmpKey: sharedRtmp};
-            NSString *jsonString = [self encodeDictionaryToJSON:dict];
-            if (jsonString)
-                [[ZegoManager api] updateStreamExtraInfo:jsonString];
-        }
     }
     else
     {
@@ -613,6 +614,13 @@
     }
     
     return nil;
+}
+
+
+#pragma mark - Orientation
+//设备方向改变的处理
+- (void)handleOrientationChange:(NSNotification *)notification{
+    [[ZegoManager api] setAppOrientation:[UIApplication sharedApplication].statusBarOrientation];
 }
 
 

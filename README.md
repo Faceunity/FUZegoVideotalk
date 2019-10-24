@@ -9,7 +9,7 @@ FUVideotalk 是集成了 Faceunity 面部跟踪和虚拟道具功能 和 [videot
 
 ### 一、接入 Faceunity SDK
 
-将  FaceUnity  文件夹全部拖入工程中，并且添加依赖库 OpenGLES.framework、Accelerate.framework、CoreMedia.framework、AVFoundation.framework、libstdc++.tbd
+将  FaceUnity  文件夹全部拖入工程中，并且添加依赖库 Accelerate.framework、CoreMedia.framework、AVFoundation.framework、libc++.tbd
 
 #### 1、快速加载道具
 
