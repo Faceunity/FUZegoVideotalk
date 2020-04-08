@@ -80,7 +80,7 @@
 - (IBAction)onSwitchCameraButton:(id)sender {
     if ([self.delegate respondsToSelector:@selector(onSwitchCameraButton:)]) {
         [self.delegate onSwitchCameraButton:sender];
-        [[FUManager shareManager] changeFlipx];
+        [FUManager shareManager].flipx = ![FUManager shareManager].flipx;
     }
 }
 

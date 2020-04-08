@@ -46,7 +46,8 @@
 @property (nonatomic, strong) NSArray<NSString *> *itemsDataSource;  /**道具分类数组*/
 @property (nonatomic, strong) NSString *selectedItem;     /**选中的道具名称*/
 
-@property (nonatomic, assign) BOOL isShown ;
+@property (nonatomic, assign) BOOL showFaceUnityEffect ;
+@property (nonatomic, assign) BOOL flipx ;
 
 + (FUManager *)shareManager;
 
@@ -62,12 +63,10 @@
 /**加载普通道具*/
 - (void)loadItem:(NSString *)itemName;
 
-/**将道具绘制到pixelBuffer*/
 - (CVPixelBufferRef)renderItemsToPixelBuffer:(CVPixelBufferRef)pixelBuffer;
 
-/* 针对腾讯兼容接口*/
 - (int)renderItemWithTexture:(int)texture Width:(int)width Height:(int)height ;
-
+- (void)processFrameWithY:(void*)y U:(void*)u V:(void*)v yStride:(int)ystride uStride:(int)ustride vStride:(int)vstride FrameWidth:(int)width FrameHeight:(int)height;
 /**获取75个人脸特征点*/
 - (void)getLandmarks:(float *)landmarks;
 
@@ -84,8 +83,7 @@
 
 /**切换摄像头要调用此函数*/
 - (void)onCameraChange;
-/* 水平镜像翻转 */
--(void)changeFlipx;
+
 /**获取错误信息*/
 - (NSString *)getError;
 @end
